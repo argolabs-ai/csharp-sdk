@@ -1,4 +1,3 @@
-using System;
 using ArgoLabs.net.Core;
 
 #nullable enable
@@ -9,17 +8,25 @@ public partial class ArgoLabs
 {
     private RawClient _client;
 
-    public ArgoLabs(ClientOptions? clientOptions = null)
+    public ArgoLabs(string? apiKeyAuthScheme = null, ClientOptions? clientOptions = null)
     {
-        _client = new RawClient(
+        var defaultHeaders = new Headers(
             new Dictionary<string, string>()
             {
+                { "x-api-key", apiKeyAuthScheme },
                 { "X-Fern-Language", "C#" },
                 { "X-Fern-SDK-Name", "ArgoLabs.net" },
-                { "X-Fern-SDK-Version", "0.0.1" },
-            },
-            new Dictionary<string, Func<string>>() { },
-            clientOptions ?? new ClientOptions()
+                { "X-Fern-SDK-Version", Version.Current },
+            }
         );
+        clientOptions ??= new ClientOptions();
+        foreach (var header in defaultHeaders)
+        {
+            if (!clientOptions.Headers.ContainsKey(header.Key))
+            {
+                clientOptions.Headers[header.Key] = header.Value;
+            }
+        }
+        _client = new RawClient(clientOptions);
     }
 }
